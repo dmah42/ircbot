@@ -11,6 +11,7 @@
 
 namespace {
 const char NICK[] = "mrdont";
+const double REPLY_PROBABILITY = 0.3;
 
 // TODO: map string to function?
 // TODO: persistant db
@@ -50,6 +51,10 @@ std::string handler(const std::string &nick, const std::string &user,
     commands[key] = value;
     return nick + ": I learned that '" + key + "' is '" + value + "'";
   }
+
+  // Stay quiet sometimes.
+  if ((rand() % 100) / 100.0 < REPLY_PROBABILITY)
+    return std::string();
 
   // Find all possible replies given the message.
   std::set<std::string> replies;
