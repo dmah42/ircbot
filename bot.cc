@@ -9,8 +9,8 @@
 #include <unistd.h>
 
 #include <iostream>
-#include <iterator>
-#include <sstream>
+
+#include "strings.h"
 
 namespace bot {
 namespace {
@@ -66,16 +66,6 @@ bool send_data(const std::string& data) {
   return send(socket_fd, message.c_str(), message.size(), 0) != 0;
 }
 
-std::vector<std::string> split(const std::string& s) {
-  std::stringstream ss(s);
-  std::vector<std::string> items;
-  std::string item;
-  while (std::getline(ss, item, ' ')) {
-    items.push_back(item);
-  }
-  return items;
-}
-
 void handle(const std::string& message) {
   std::cout << time_now() << ">> " << message << '\n';
 
@@ -94,7 +84,7 @@ void handle(const std::string& message) {
 
   if (message[0] != ':') return;
 
-  std::vector<std::string> parts = split(message);
+  std::vector<std::string> parts = strings::split(message, ' ');
 
   // Only care about private messages
   if (parts[1] != "PRIVMSG") return;
@@ -108,16 +98,13 @@ void handle(const std::string& message) {
   std::string server = parts[0].substr(user_server_pos + 1);
   std::string channel = parts[2];
 
-  std::ostringstream os;
-  std::copy(parts.begin() + 3, parts.end() - 1,
-            std::ostream_iterator<std::string>(os, " "));
-  os << *(parts.rbegin());
-  std::string inner_message = os.str().substr(1);
+  std::string inner_message = strings::join(
+      std::vector<std::string>(parts.begin() + 3, parts.end()), " ").substr(1);
 
   std::string response =
       handle_func(nick, user, server, channel, inner_message);
   if (!response.empty()) {
-    send_data(response);
+    send_data("PRIVMSG " + channel + " :" + response);
   }
 }
 
