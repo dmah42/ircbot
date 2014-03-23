@@ -13,3 +13,11 @@
 *.a
 
 ircbot
+
+.ninja_deps
+.ninja_log
+CMakeCache.txt
+CMakeFiles/
+build.ninja
+cmake_install.cmake
+rules.ninja
