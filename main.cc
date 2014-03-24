@@ -4,6 +4,7 @@
 #include <iostream>
 #include <map>
 #include <set>
+#include <sstream>
 #include <string>
 
 #include "bot.h"
@@ -11,46 +12,51 @@
 
 namespace {
 const char NICK[] = "mrdont";
-const double REPLY_PROBABILITY = 0.3;
+const double REPLY_PROBABILITY = 0.5;
 
 // TODO: map string to function?
 // TODO: persistant db
 // TODO: multiple values
-std::map<std::string, std::string> commands = {
-  { "say {1}", "{nick}: {1}" },
-  { "begone!", "/quit" },
-  { "help", "{nick}: learn {key} is {value}"}
-};
+std::map<std::string, std::string> commands = { };
 
 std::string handler(const std::string &nick, const std::string &user,
                     const std::string &server, const std::string &channel,
                     const std::string &message) {
-  // Tokenize the message
+  // Tokenize the message.
+  // TODO: strip off punctuation.
   auto parts = strings::split(message, ' ');
 
-  if (parts[0] == NICK && parts[1] == "learn") {
-    std::string key = parts[2];
-    size_t i = 3;
-    while (parts[i] != "is" && i < parts.size())
-      key += " " + parts[i++];
+  if (parts[0] == NICK ) {
+    if (parts[1] == "help") {
+      return nick + ": learn {key} is {value}, status, help";
+    } else if (parts[1] == "learn") {
+      std::string key = parts[2];
+      size_t i = 3;
+      while (parts[i] != "is" && i < parts.size())
+        key += " " + parts[i++];
 
-    std::string value;
-    // Skip the "is"
-    if (i++ < parts.size()) {
-      value = parts[i++];
-      for (; i < parts.size(); ++i)
-        value += " " + parts[i];
+      std::string value;
+      // Skip the "is"
+      if (i++ < parts.size()) {
+        value = parts[i++];
+        for (; i < parts.size(); ++i)
+          value += " " + parts[i];
+      }
+
+      if (key.empty())
+        return nick + ": learn what?";
+
+      if (value.empty())
+        return nick + ": learn that '" + key + "' is what?";
+
+      commands[key] = value;
+      return nick + ": I learned that '" + key + "' is '" + value + "'";
+    } else if (parts[1] == "status") {
+      std::stringstream ss;
+      ss << nick << ": I know " << commands.size() << " commands.";
+      return ss.str();
     }
-
-    if (key.empty())
-      return nick + ": learn what?";
-
-    if (value.empty())
-      return nick + ": learn that '" + key + "' is what?";
-
-    commands[key] = value;
-    return nick + ": I learned that '" + key + "' is '" + value + "'";
-  }
+  } 
 
   // Stay quiet sometimes.
   if ((rand() % 100) / 100.0 < REPLY_PROBABILITY)
