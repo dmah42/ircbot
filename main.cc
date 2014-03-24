@@ -19,6 +19,8 @@ const double REPLY_PROBABILITY = 0.5;
 // TODO: multiple values
 std::map<std::string, std::string> commands = { };
 
+// TODO: multi-line responses
+// TODO: PRIVMSG vs ACTION responses
 std::string handler(const std::string &nick, const std::string &user,
                     const std::string &server, const std::string &channel,
                     const std::string &message) {
