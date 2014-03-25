@@ -1,6 +1,7 @@
 #include "bot.h"
 
 #include <assert.h>
+#include <limits.h>
 #include <netdb.h>
 #include <string.h>
 #include <sys/socket.h>
@@ -18,8 +19,6 @@ const char PORT[] = "6667";
 const size_t MAX_DATA_SIZE = 128;
 const char USER_NAME[] = "dmabot";
 
-// TODO: replace this with local hostname.
-const char HOST_NAME[] = "dma.sh";
 const char SERVER_NAME[] = "irc";
 const char REAL_NAME[] = "dma bot";
 
@@ -129,9 +128,12 @@ void run(const std::string &server, const std::string &nick,
     switch (iterations) {
       case 3:
         // send data to server (as per IRC protocol)
+        char hostname[HOST_NAME_MAX];
+        hostname[0] = '\0';
+        assert(gethostname(hostname, HOST_NAME_MAX) == 0);
         assert(send_data("NICK " + nick));
         assert(send_data(
-            "USER " + std::string(USER_NAME) + " " + std::string(HOST_NAME) +
+            "USER " + std::string(USER_NAME) + " " + std::string(hostname) +
             " " + std::string(SERVER_NAME) + " :" + std::string(REAL_NAME)));
         break;
 
