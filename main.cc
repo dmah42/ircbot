@@ -1,3 +1,4 @@
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -6,6 +7,11 @@
 const char NICK[] = "mrdont";
 
 int main(int argc, char* argv[]) {
+  if (argc == 1) {
+    std::cerr << "Usage: " << argv[0] << " <server> <channels>...\n";
+    exit(1);
+  }
+
   std::string server(argv[1]);
   std::vector<std::string> channels;
   for (size_t i = 2; i < argc; ++i)
