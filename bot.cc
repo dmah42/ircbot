@@ -147,7 +147,7 @@ void run(const std::string &server, const std::string &n,
         char hostname[HOST_NAME_MAX];
         hostname[0] = '\0';
         assert(gethostname(hostname, HOST_NAME_MAX) == 0);
-        assert(send_data("NICK " + nick));
+        assert(send_data("NICK " + mynick));
         assert(send_data(
             "USER " + std::string(USER_NAME) + " " + std::string(hostname) +
             " " + std::string(SERVER_NAME) + " :" + std::string(REAL_NAME)));
