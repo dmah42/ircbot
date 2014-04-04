@@ -11,10 +11,12 @@
 
 #include <iostream>
 
+#include "commands.h"
 #include "strings.h"
 
 namespace bot {
 namespace {
+
 const char PORT[] = "6667";
 const size_t MAX_DATA_SIZE = 128;
 const char USER_NAME[] = "dmabot";
@@ -78,9 +80,6 @@ void handle(const std::string& message) {
     return;
   }
 
-  // Skip if no handle function is registered.
-  if (handle_func == nullptr) return;
-
   if (message[0] != ':') return;
 
   std::vector<std::string> parts = strings::split(message, ' ');
@@ -100,21 +99,38 @@ void handle(const std::string& message) {
   std::string inner_message = strings::join(
       std::vector<std::string>(parts.begin() + 3, parts.end()), " ").substr(1);
 
-  std::string response =
-      handle_func(nick, user, server, channel, inner_message);
-  if (!response.empty()) {
-    send_data("PRIVMSG " + channel + " :" + response);
+  Response response = do_command({nick, user, server, channel, inner_message});
+  if (response.type != Response::TYPE_NULL) {
+    std::string prefix, suffix;
+    switch (response.type) {
+      case Response::TYPE_REPLY:
+        prefix = "PRIVMSG " + channel + " :" + nick + ": ";
+        break;
+        
+      case Response::TYPE_ACTION:
+        prefix = "PRIVMSG " + channel + " :\u0001ACTION ";
+        suffix = "\u0001";
+        break;
+
+      case Response::TYPE_MESSAGE:
+        prefix = "PRIVMSG " + channel + " :";
+        break;
+
+      case Response::TYPE_NULL:
+        break;
+    }
+    send_data(prefix + response.message + suffix);
   }
 }
 
 }  // end namespace
 
-std::function<std::string(const std::string &nick, const std::string &user,
-                          const std::string &server, const std::string &channel,
-                          const std::string &message)> handle_func = nullptr;
+std::string mynick;
 
-void run(const std::string &server, const std::string &nick,
+void run(const std::string &server, const std::string &n,
          const std::vector<std::string> &channels) {
+  mynick = n;
+
   socket_fd = create_socket(server);
   assert(socket_fd > 0);
 
